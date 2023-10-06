@@ -1,32 +1,25 @@
-name: Deploy to VPS
+name: cd
 
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
-  deploy:
+  cd:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H $VPS_IP_ADDRESS >> ~/.ssh/known_hosts
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        VPS_IP_ADDRESS: ${{ secrets.HOST }}
-
-    - name: Deploy code to VPS
-      run: |
-        ssh -i ~/.ssh/id_rsa -p $VPS_PORT $SSH_USERNAME@$VPS_IP_ADDRESS "cd /var/www/Projek && git pull"
-      env:
-        SSH_USERNAME: ${{ secrets.USERNAME }}
-        VPS_IP_ADDRESS: ${{ secrets.HOST }}
-        VPS_PORT: ${{ secrets.PORT }}
+      - name: Deploy Using ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd ~/app/example-ci-cd-auto-deploy-vps
+            git pull origin master
+            git status
