@@ -20,6 +20,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            cd ~/var/www/Projek
+            cd ~/var/www/projek
             git pull origin master
             git status
