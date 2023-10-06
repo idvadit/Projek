@@ -1,29 +1,32 @@
-name: Deploy
+name: Deploy to VPS
 
-# Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ main ]
+    branches:
+      - main
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  deploy:
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the joba
-    steps:       
-    - name: Deploy using ssh
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 22
-        script: |
-          cd /var/www/Projek/
-          git pull origin main
-          git status
-          npm install --only=prod
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $VPS_IP_ADDRESS >> ~/.ssh/known_hosts
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        VPS_IP_ADDRESS: ${{ secrets.HOST }}
+
+    - name: Deploy code to VPS
+      run: |
+        ssh -i ~/.ssh/id_rsa -p $VPS_PORT $SSH_USERNAME@$VPS_IP_ADDRESS "cd /var/www/Projek && git pull"
+      env:
+        SSH_USERNAME: ${{ secrets.USERNAME }}
+        VPS_IP_ADDRESS: ${{ secrets.HOST }}
+        VPS_PORT: ${{ secrets.PORT }}
