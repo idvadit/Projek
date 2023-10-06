@@ -1,4 +1,4 @@
- name: Deploy
+  name: Deploy
 
 # Controls when the action will run. 
 on:
@@ -26,4 +26,5 @@ jobs:
           cd /var/www/Projek/
           git pull origin main
           git status
-          npm install --only=prod
+          
+  #        npm install --only=prod
